@@ -1,0 +1,11 @@
+# Folders to ignore
+download/*
+media/*
+log[s]/*
+!.gitkeep
+
+# Files to ignore ('**/' means, in all subdirectories)
+**/*.bak
+**/*.zip
+**/*.tgz
+**/*.tar.gz
