@@ -9,3 +9,4 @@ log[s]/*
 **/*.zip
 **/*.tgz
 **/*.tar.gz
+**./*.tmp
