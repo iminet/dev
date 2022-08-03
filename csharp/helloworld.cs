@@ -1,3 +1,4 @@
+// C# sample file
 namespace HelloWorld
 {
     class Hello 
