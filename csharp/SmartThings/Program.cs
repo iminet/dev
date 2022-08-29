@@ -7,8 +7,8 @@ namespace SmartThings
     class SmartThings
     {
         static void Main()
-        {
-            string accesstoken = "";
+        {            
+            string accesstoken = ""; // Fill your SmartThings access token here
             var configuration = new Configuration();
             configuration.AccessToken = accesstoken;
             var devices = new DevicesApi(configuration);
