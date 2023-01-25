@@ -1,3 +1,9 @@
+// ==============================================================================================
+// For testing windows service with .NET 5
+// Source: https://stackoverflow.com/questions/7764088/net-console-application-as-windows-service
+// ==============================================================================================
+
+
 using System.ServiceProcess
 
 public static class Program
