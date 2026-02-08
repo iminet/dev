@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SmartThings")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d8360b1f53e4cc79d252b0e75f36156b855cb1c6")]
 [assembly: System.Reflection.AssemblyProductAttribute("SmartThings")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SmartThings")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

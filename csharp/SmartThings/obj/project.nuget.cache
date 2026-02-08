@@ -1,15 +1,19 @@
 {
   "version": 2,
-  "dgSpecHash": "mm3aTaLH6QwmOWlsD+6Va0389ozpfkInfXmCk+ekCW/IYvLAjouCAvvwfO/cvBj7rBl0wHVIPP8wFmFefYQHkQ==",
+  "dgSpecHash": "RZyvuUijdfU=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Imi\\Downloads\\SmartThings\\SmartThings.csproj",
+  "projectFilePath": "C:\\Users\\ikincses\\source\\repos\\devtools\\csharp\\SmartThings\\SmartThings.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Imi\\.nuget\\packages\\jsonsubtypes\\1.8.0\\jsonsubtypes.1.8.0.nupkg.sha512",
-    "C:\\Users\\Imi\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
-    "C:\\Users\\Imi\\.nuget\\packages\\polly\\7.2.2\\polly.7.2.2.nupkg.sha512",
-    "C:\\Users\\Imi\\.nuget\\packages\\restsharp\\106.15.0\\restsharp.106.15.0.nupkg.sha512",
-    "C:\\Users\\Imi\\.nuget\\packages\\smartthingsnet\\0.7.0\\smartthingsnet.0.7.0.nupkg.sha512",
-    "C:\\Users\\Imi\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512"
+    "C:\\Users\\ikincses\\.nuget\\packages\\jsonsubtypes\\1.8.0\\jsonsubtypes.1.8.0.nupkg.sha512",
+    "C:\\Users\\ikincses\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
+    "C:\\Users\\ikincses\\.nuget\\packages\\polly\\7.2.2\\polly.7.2.2.nupkg.sha512",
+    "C:\\Users\\ikincses\\.nuget\\packages\\restsharp\\106.15.0\\restsharp.106.15.0.nupkg.sha512",
+    "C:\\Users\\ikincses\\.nuget\\packages\\smartthingsnet\\0.7.0\\smartthingsnet.0.7.0.nupkg.sha512",
+    "C:\\Users\\ikincses\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512",
+    "C:\\Users\\ikincses\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.36\\microsoft.netcore.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\ikincses\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.36\\microsoft.windowsdesktop.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\ikincses\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.36\\microsoft.aspnetcore.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\ikincses\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.36\\microsoft.netcore.app.host.win-x64.6.0.36.nupkg.sha512"
   ],
   "logs": []
 }
