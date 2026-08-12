@@ -17,12 +17,6 @@ jobs:
       - name: Dotnet info
         run: dotnet --info
 
-      - name: Dotnet restore
-        run: dotnet restore
-
-      - name: Dotnet build
-        run: dotnet build --configuration Release
-
       - name: Say hello
         run: echo "Hello from GitHub Actions!"
 
