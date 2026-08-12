@@ -8,6 +8,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - run: dotnet --info
+
+      - run: dotnet restore
+
+      - run: dotnet build --configuration Release
+
       - name: Say hello
         run: echo "Hello from GitHub Actions!"
 
