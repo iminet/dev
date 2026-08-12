@@ -1,7 +1,10 @@
 # Folders to ignore
 download/*
 media/*
-log[s]/*
+**/[Ll]og[s]/*
+**/[Bb]in/
+**/[Oo]bj
+
 !.gitkeep
 
 # Files to ignore ('**/' means, in all subdirectories)
