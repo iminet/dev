@@ -12,10 +12,13 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Dotnet info
       - run: dotnet --info
 
+      - name: Dotnet restore
       - run: dotnet restore
 
+      - name: Dotnet build
       - run: dotnet build --configuration Release
 
       - name: Say hello
