@@ -41,3 +41,13 @@ jobs:
           echo "Disk: $(df -h / | awk 'NR==2 {print $2}')"
           echo "Available disk: $(df -h / | awk 'NR==2 {print $4}')"
           echo "OS: $(lsb_release -ds 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME)"
+
+      - name: Print repository variable
+        run: |
+          echo "TEST_MESSAGE=$TEST_MESSAGE"
+        env:
+          TEST_MESSAGE: ${{ vars.TEST_MESSAGE }}
+
+      - name: Print directly
+        run: |
+          echo "Direct: ${{ vars.TEST_MESSAGE }}"
