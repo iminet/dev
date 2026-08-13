@@ -31,3 +31,13 @@ jobs:
 
       - name: Show current time
         run: date
+
+      - name: VM summary
+        run: |
+          echo "CPU cores: $(nproc)"
+          echo "CPU: $(lscpu | grep 'Model name' | head -1 | cut -d: -f2- | xargs)"
+          echo "RAM: $(free -h | awk '/^Mem:/ {print $2}')"
+          echo "Available RAM: $(free -h | awk '/^Mem:/ {print $7}')"
+          echo "Disk: $(df -h / | awk 'NR==2 {print $2}')"
+          echo "Available disk: $(df -h / | awk 'NR==2 {print $4}')"
+          echo "OS: $(lsb_release -ds 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME)"
