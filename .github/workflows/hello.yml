@@ -21,6 +21,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Commit info
+        run: echo "$GITHUB_REF_NAME / $GITHUB_SHA"
+
       - name: Dotnet info
         run: dotnet --info
 
