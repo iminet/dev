@@ -1,0 +1,52 @@
+name: List unused GitHub Packages versions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  list-zero-downloads:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: List zero-download NuGet package versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_OWNER: ${{ github.repository_owner }}
+        shell: bash
+        run: |
+          result="$(gh api graphql \
+            -f query='query($owner: String!) {
+              user(login: $owner) {
+                packages(first: 100, packageType: NUGET) {
+                  nodes {
+                    name
+                    versions(first: 100) {
+                      nodes {
+                        version
+                        statistics { downloadsTotalCount }
+                      }
+                    }
+                  }
+                }
+              }
+            }' \
+            -f owner="$PACKAGE_OWNER")"
+
+          matches="$(printf '%s' "$result" | jq -r '
+            .data.user.packages.nodes[]
+            | .name as $package
+            | .versions.nodes[]
+            | select(.statistics != null and .statistics.downloadsTotalCount == 0)
+            | "\($package) \(.version)"')"
+
+          if [[ -z "$matches" ]]; then
+            echo "No zero-download NuGet package versions found."
+            exit 0
+          fi
+
+          echo "Zero-download NuGet package versions:"
+          echo "$matches"
