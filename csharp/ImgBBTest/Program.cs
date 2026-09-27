@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace Iminetsoft.Dev.ImgBBTest
 {
     public static class Program
@@ -7,6 +9,10 @@ namespace Iminetsoft.Dev.ImgBBTest
             var args = Iminetcore.ConsoleParser.ArgParser.ParseDynamic(Args);
 
             Console.WriteLine("IMGBB Test Application");
+
+            Environment.GetEnvironmentVariables().Cast<DictionaryEntry>().OrderBy(x => x.Key).ToList().ForEach(x => Console.WriteLine($"\t{x.Key} :: {x.Value}"));
+
+            return;
 
             var imgbb_token = Environment.GetEnvironmentVariable("IMGBB_TOKEN") ?? args.token ?? args.t;
             var imgbb = new ImgBBApi(imgbb_token);
