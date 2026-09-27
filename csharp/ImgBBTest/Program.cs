@@ -10,10 +10,6 @@ namespace Iminetsoft.Dev.ImgBBTest
 
             Console.WriteLine("IMGBB Test Application");
 
-            Environment.GetEnvironmentVariables().Cast<DictionaryEntry>().OrderBy(x => x.Key).ToList().ForEach(x => Console.WriteLine($"\t{x.Key} :: {x.Value}"));
-
-            return;
-
             var imgbb_token = Environment.GetEnvironmentVariable("IMGBB_TOKEN") ?? args.token ?? args.t;
             var imgbb = new ImgBBApi(imgbb_token);
             var uploaded = new List<string>();
