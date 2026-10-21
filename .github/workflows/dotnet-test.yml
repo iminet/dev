@@ -17,3 +17,6 @@ jobs:
 
       - name: Dotnet info
         run: dotnet --info
+
+      - name: Dotnet build
+        run: dotnet run --file ./csharp/helloworld.cs
