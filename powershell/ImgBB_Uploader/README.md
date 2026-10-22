@@ -1,13 +1,13 @@
 # Upload Images to ImgBB
 
-A small PowerShell hobby script for uploading JPG, JPEG, and PNG files from a local directory to ImgBB through its HTTPS API.
+A small PowerShell hobby script for uploading one JPG, JPEG, or PNG file, or matching files from a local directory, to ImgBB through its HTTPS API.
 
 Uploads run sequentially, with random delays enabled by default and bounded retries to reduce server load. Ordinary delays can be disabled explicitly; retry waits remain enabled. There is no configured limit on the number of files in a run. Service limits, available memory, network conditions, and processing time still apply.
 
 ## Requirements
 
 - Windows PowerShell 5.1 or PowerShell 7. The implementation targets both versions; runtime compatibility testing has not yet been completed.
-- A readable local filesystem directory containing images.
+- A readable local image file or filesystem directory containing images.
 - An ImgBB API key, including for dry runs.
 - Internet access to `https://api.imgbb.com/1/upload` for actual uploads.
 
@@ -43,14 +43,17 @@ The examples use placeholders, not working credentials. Typing a real key into a
 
 | Parameter | Type | Default | Behavior |
 | --- | --- | --- | --- |
-| `-DirectoryPath` | String | Required | Existing filesystem directory, interpreted literally. Relative paths are resolved from the current working directory. |
+| `-DirectoryPath` | String | Unset | Existing filesystem directory, required unless `-FilePath` is supplied. Ignored when `-FilePath` is supplied. |
+| `-FilePath` | String | Unset | One existing JPG/JPEG/PNG file. Takes precedence over `-DirectoryPath`. Paths are literal; relative paths use the current working directory. |
 | `-ApiKey` | String | Unset | A nonblank value takes precedence over `IMGBB_API_KEY`. |
-| `-Recurse` | Switch | Off | Include subdirectories. |
+| `-Recurse` | Switch | Off | Include subdirectories in directory mode. Ignored in single-file mode. |
 | `-WaitTime` | String | `Random` | Only `Off` disables the ordinary 3–6 second request delay. Missing, empty, or unrecognized values retain random waiting. Case-insensitive. Retry waits remain enabled. |
 | `-Silent` | Switch | Off | Print errors and skips only. Suppress progress, success URLs, retry notices, and the summary. |
 | `-DryRun` | Switch | Off | Perform local preparation without sending requests or waiting between files. |
 
 Switches can be combined. For example, `-Recurse -Silent -DryRun` checks the directory tree and displays only problems.
+
+Supply `-FilePath` or `-DirectoryPath`. If both are present, **only the file is processed**; the directory is not inspected or validated. An explicitly supplied but empty, missing, inaccessible, or unsupported file path produces an error and exit code `1`; it never falls back to uploading a directory. If neither input is supplied, the script exits with an error. Input validation occurs after the API-key presence check.
 
 `-WaitTime` intentionally accepts arbitrary string values and falls back to `Random` unless the value is exactly `Off`, ignoring letter case. Thus `-WaitTime 'invalid'`, `-WaitTime ''`, and omitting the parameter all keep random waiting. Supply a value when writing `-WaitTime`; a bare parameter without a value remains a PowerShell argument-binding error. A misspelled parameter name is also a binding error.
 
@@ -59,6 +62,26 @@ If `-ApiKey` is omitted, empty, or whitespace, the script uses `IMGBB_API_KEY`. 
 The standard PowerShell common parameters are also available, but `-WhatIf` and `-Confirm` are not implemented. Use `-DryRun` for a preview. `-Silent` controls ordinary status messages; it does not hide PowerShell parameter-binding or startup errors.
 
 ## Examples
+
+Upload one file:
+
+```powershell
+.\Upload-ImagesToImgBB.ps1 -FilePath 'C:\Images\photo.jpg'
+```
+
+Preview one file without uploading:
+
+```powershell
+.\Upload-ImagesToImgBB.ps1 -FilePath 'C:\Images\photo.jpg' -DryRun
+```
+
+When both paths are supplied, upload only the file:
+
+```powershell
+.\Upload-ImagesToImgBB.ps1 -FilePath 'C:\Images\photo.jpg' -DirectoryPath 'C:\OtherImages' -Recurse
+```
+
+In this example, `C:\OtherImages` and `-Recurse` are ignored. `-ApiKey`, `-Silent`, `-DryRun`, and `-WaitTime` work in both modes. A successful single-file upload has no ordinary inter-request delay because it needs only one request; retries still follow the configured delay and backoff rules.
 
 Include subdirectories:
 
@@ -114,9 +137,9 @@ Get-Help .\Upload-ImagesToImgBB.ps1 -Full
 ## File selection and preparation
 
 - Matches `.jpg`, `.jpeg`, and `.png` extensions, case-insensitively.
-- Processes only the selected directory unless `-Recurse` is present.
+- With `-FilePath`, processes only the selected file. Otherwise, processes only the selected directory unless `-Recurse` is present.
 - Does not request hidden files through `-Force`.
-- Accepts brackets and other wildcard characters in directory names as literal characters.
+- Accepts brackets and other wildcard characters in input paths as literal characters; wildcard expansion is not supported.
 - Requires a nonempty file no larger than **32 MiB (33,554,432 bytes)**. This is the script's local check; it does not guarantee that the service accepts a file.
 - Checks size before and after reading, then converts the file to Base64.
 - Does not decode images or verify that file contents match their extensions.
@@ -171,7 +194,7 @@ Ordinary messages use `Write-Host`. Error and skip messages use plain .NET stand
 
 An empty, oversized, unreadable, or unencodable image produces a skip message. The file counts as failed, and processing continues. Size failures report the byte count; other preparation failures report the underlying exception type without dumping the exception or image contents.
 
-A missing/inaccessible directory, enumeration failure, access-denied API status, or exhausted transient retries stops the run. A recursive scan can stop if it encounters an inaccessible directory. Files already uploaded remain uploaded.
+An invalid selected input, enumeration failure, access-denied API status, or exhausted transient retries stops the run. A recursive scan can stop if it encounters an inaccessible directory. Files already uploaded remain uploaded. In single-file mode, local preparation failures still produce the same skip message and failed count; there is simply no next file to process.
 
 The normal summary contains `processed`, `uploaded`, and `failed` counts. In dry-run mode, `ready` replaces `uploaded`. A stopped run counts only files reached before the stop; it does not count the unvisited remainder. Some configuration failures occur before a summary can be printed.
 
@@ -194,6 +217,8 @@ Invoke the script normally or in a separate PowerShell process; do not dot-sourc
 | Symptom | What to check |
 | --- | --- |
 | API key missing | Set `IMGBB_API_KEY` in the same session or provide `-ApiKey`. Dry runs also require a key. |
+| FilePath input error | Check that the selected path is an accessible JPG/JPEG/PNG file. If `-FilePath` is supplied, the directory is ignored even when the file input is invalid. |
+| Missing input | Supply `-FilePath` or `-DirectoryPath`. |
 | No matching files | Check the path, extensions, hidden attributes, and whether `-Recurse` is needed. |
 | Size skip | Confirm the file is nonempty and at or below the script's 32 MiB threshold. |
 | Cannot read or encode | Check the reported exception type, file permissions, availability, locks, and memory. |
@@ -227,6 +252,7 @@ Before relying on it for a large batch:
 
 1. Run a dry run on a small directory, including an empty file and a nested directory.
 2. Confirm that `-Recurse`, `-Silent`, skip messages, colors, and exit codes behave as expected in your terminal. In a mocked upload test, verify that `-WaitTime Off` skips only ordinary delays, while omitted/invalid values retain them and retry waits remain active.
+   Also check single-file mode, file-over-directory precedence, and invalid file input without directory fallback.
 3. Upload a small, non-sensitive test image and check the returned URL.
 4. Validate retry and failure paths using mocks or a controlled test harness rather than deliberately overloading the live service.
 

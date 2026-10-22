@@ -13,12 +13,18 @@
     retries/skips, and red for errors. Text labels remain readable without color.
 .PARAMETER DirectoryPath
     An existing directory. Treated as a literal path, including brackets.
+    Required unless FilePath is supplied. Ignored when FilePath is supplied.
+.PARAMETER FilePath
+    One existing JPG, JPEG, or PNG file, interpreted literally. Takes precedence
+    over DirectoryPath. An invalid FilePath fails without falling back to a
+    directory scan. Recurse has no effect in single-file mode.
 .PARAMETER ApiKey
     ImgBB API key. A nonblank value overrides IMGBB_API_KEY. Prefer the environment
     variable to avoid saving a key in shell history. The key is sent in the POST
     body, never in the URL or script-generated messages.
 .PARAMETER Recurse
     Include subdirectories. Disabled by default. Hidden files are not included.
+    Ignored when FilePath is supplied.
 .PARAMETER WaitTime
     Random (default) enables a random 3-6 second pause between requests.
     Only Off disables this ordinary pause. Omitted, empty, or unrecognized
@@ -43,6 +49,11 @@
 .EXAMPLE
     .\Upload-ImagesToImgBB.ps1 -DirectoryPath './images' -WaitTime Off
     Disables ordinary request delays while retaining retry waits.
+.EXAMPLE
+    .\Upload-ImagesToImgBB.ps1 -FilePath 'C:\Images\photo.jpg' -DryRun
+.EXAMPLE
+    .\Upload-ImagesToImgBB.ps1 -FilePath 'C:\Images\photo.jpg' -DirectoryPath 'C:\OtherImages'
+    Uploads only photo.jpg; DirectoryPath is ignored.
 .NOTES
     Intended for Windows PowerShell 5.1 and PowerShell 7.
     Exit codes: 0 = success (including no matching files); 1 = any failure.
@@ -78,10 +89,8 @@
 
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
     [string]$DirectoryPath,
-
+    [string]$FilePath,
     [string]$ApiKey,
     [AllowNull()]
     [AllowEmptyString()]
@@ -170,6 +179,37 @@ if ([string]::IsNullOrWhiteSpace($finalApiKey)) {
     exit 1
 }
 
+# Presence, rather than validity, determines precedence. Never silently upload
+# a directory when the caller explicitly selected a missing or invalid file.
+$useFilePath = $PSBoundParameters.ContainsKey('FilePath')
+$supportedExtensions = @('.jpg', '.jpeg', '.png')
+$inputError = if ($useFilePath) {
+    'FilePath must identify an existing, accessible JPG, JPEG, or PNG file. DirectoryPath is ignored.'
+}
+else { 'DirectoryPath must identify an existing, accessible filesystem directory, or supply -FilePath.' }
+
+try {
+    if ($useFilePath) {
+        if ([string]::IsNullOrWhiteSpace($FilePath)) { throw 'Empty file path.' }
+        $selectedFile = Get-Item -LiteralPath $FilePath -ErrorAction Stop
+        if ($selectedFile.PSIsContainer -or $selectedFile.PSProvider.Name -ne 'FileSystem' -or
+            $selectedFile.Extension -notin $supportedExtensions) {
+            throw 'Unsupported file input.'
+        }
+    }
+    else {
+        if ([string]::IsNullOrWhiteSpace($DirectoryPath)) { throw 'Missing directory path.' }
+        $directory = Get-Item -LiteralPath $DirectoryPath -ErrorAction Stop
+        if (-not $directory.PSIsContainer -or $directory.PSProvider.Name -ne 'FileSystem') {
+            throw 'A filesystem directory is required.'
+        }
+    }
+}
+catch {
+    Write-UploadError $inputError
+    exit 1
+}
+
 $processed = 0L
 $succeeded = 0L
 $failed = 0L
@@ -183,25 +223,32 @@ $endpoint = 'https://api.imgbb.com/1/upload'
 $originalSecurityProtocol = [Net.ServicePointManager]::SecurityProtocol
 
 try {
-    $directory = Get-Item -LiteralPath $DirectoryPath -ErrorAction Stop
-    if (-not $directory.PSIsContainer -or $directory.PSProvider.Name -ne 'FileSystem') {
-        throw 'A filesystem directory is required.'
-    }
-
     if (-not $DryRun -and $PSVersionTable.PSVersion.Major -eq 5) {
         [Net.ServicePointManager]::SecurityProtocol = $originalSecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
     }
 
     $mode = if ($DryRun) { 'Dry run' } else { 'Upload' }
-    Write-Status "$mode started. Recursive search: $([bool]$Recurse)."
+    if ($useFilePath) {
+        Write-Status "$mode started. Single file: $($selectedFile.FullName)."
+    }
+    else {
+        Write-Status "$mode started. Recursive search: $([bool]$Recurse)."
+    }
     if (-not $DryRun) {
         $waitMode = if ($useRandomWait) { 'Random (3-6 seconds)' } else { 'Off (retry waits still apply)' }
         Write-Status "Request delay: $waitMode."
     }
 
-    Get-ChildItem -LiteralPath $directory.FullName -File -Recurse:$Recurse -ErrorAction Stop |
-        Where-Object { $_.Extension -in @('.jpg', '.jpeg', '.png') } |
-        ForEach-Object {
+    # Both modes feed the same preparation/upload pipeline; directory mode
+    # continues to stream files instead of collecting the full list in memory.
+    $getSelectedImages = {
+        if ($useFilePath) { $selectedFile }
+        else {
+            Get-ChildItem -LiteralPath $directory.FullName -File -Recurse:$Recurse -ErrorAction Stop |
+                Where-Object { $_.Extension -in $supportedExtensions }
+        }
+    }
+    & $getSelectedImages | ForEach-Object {
             $image = $_
             $processed++
             $base64Image = $null
@@ -301,7 +348,7 @@ try {
 }
 catch {
     $runFailed = $true
-    Write-UploadError 'Run stopped. Check the directory and its permissions; if requests failed, check the API key, connection, or service availability before restarting.'
+    Write-UploadError 'Run stopped. Check the selected input and its permissions; if requests failed, check the API key, connection, or service availability before restarting.'
 }
 finally {
     if ($PSVersionTable.PSVersion.Major -eq 5) {
